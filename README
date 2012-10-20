@@ -1,0 +1,14 @@
+This daemon will listen your button device from under the X, interpret any input by certain rules and execute corresponding commands.
+
+Types of commands:
+- shell -- execute command in shell
+- pipe -- write data in pipe (or file)
+- callback -- run python code
+
+Input pattern rules:
+Any buttons that might be represented by string are to be wrote in such way. Example: "a" or "A" for 'a' button.
+Buttons than can not, should be embraced in '<>' and called by name in KEYNAMES file. Example: "<ENTER>", "<F12>", "<DELETE>".
+String of several characters means buttons pressed in sequence. Example: "abc" will respond to "a", "b" and "c", pressed one after another.
+Wildcards - any sequence of buttons that can be passed to the executed command, represented by "*". Exmple: "a*" means "a" pressed, then any sequence, finished by wildcard breaker (changed in config, default: "<ENTER>").
+(not implemented yet) Pressing of buttons at the same time represented by parentheses. Example: "(abc)" is for: "a" pressed and hold, then "b" and "c" pressed, then "a" let go.
+
