@@ -2,7 +2,6 @@
 from subprocess import call
 from tempfile import NamedTemporaryFile
 from unittest import TestCase
-from callbacks import *
 
 __author__ = 'iljich'
 

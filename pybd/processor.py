@@ -4,9 +4,9 @@ from json import loads
 from select import select
 from unittest import TestCase
 from evdev import ecodes, KeyEvent
-from device import Device
-from expression import Expression
-from handler import HandlerFactory
+from pybd.device import Device
+from pybd.expression import Expression
+from pybd.handler import HandlerFactory
 
 __author__ = 'iljich'
 
