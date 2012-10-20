@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 from re import search
-from subprocess import Popen, PIPE, check_call, CalledProcessError
-from unittest.case import TestCase
+from subprocess import Popen, PIPE, check_call
 from evdev.device import InputDevice
 from evdev.util import list_devices
 
@@ -68,24 +67,3 @@ class Device(object):
 
     def exit(self):
         self.set_state(self.initial_state)
-
-class DeviceManagerTest(TestCase):
-    def setUp(self):
-        self.device = Device(name="AT Translated Set 2 keyboard")
-
-    def test_nonexistant(self):
-        self.assertRaises(DeviceError, Device, None, "Nonexistent")
-        self.assertRaises(DeviceError, Device, 22)
-        self.device.xid = "Dummy"
-        self.assertRaises(CalledProcessError, self.device.set_state, 0)
-
-    def test_set_state(self):
-        self.device.set_state(0)
-        self.assertEqual(self.device.get_state(), 0)
-        self.device.set_state(1)
-        self.assertEqual(self.device.get_state(), 1)
-
-    def test_from_xid(self):
-        d = Device(xid=10)
-        d1 = Device(name="AT Translated Set 2 keyboard")
-        self.assertEqual(d.path, d1.path)

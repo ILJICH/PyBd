@@ -2,7 +2,6 @@
 from collections import defaultdict
 from json import loads
 from select import select
-from unittest import TestCase
 from evdev import ecodes, KeyEvent
 from pybd.device import Device
 from pybd.expression import Expression
@@ -101,26 +100,3 @@ class d_dict(dict):
     def __getitem__(self, item):
         reply = self.get(item, None)
         return d_dict(reply) if isinstance(reply, dict) else reply
-
-
-
-class ProcessorTest(TestCase):
-    def test_init(self):
-        processer = Processor("test.conf")
-        expression = processer.expressions[0][0]
-
-class ConfigTest(TestCase):
-    def setUp(self):
-        with open("test.conf") as f:
-            self.c = ConfigReader(f.read())
-
-    def test_config(self):
-        self.assertEqual(self.c["none"], None)
-        self.assertEqual(self.c["device"]["none"], None)
-
-    def test_split(self):
-        handler_header, expressions =  self.c["expressions"]["default"].items()[0]
-        handler, params = self.c.split_header(handler_header)
-        self.assertEqual(params["user"], "iljich")
-        self.assertEqual(params["none"], None)
-        self.assertEqual(handler, "shell")

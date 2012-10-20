@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from subprocess import call
-from tempfile import NamedTemporaryFile
-from unittest import TestCase
+from callbacks.callbacks import *
 
 __author__ = 'iljich'
 
@@ -69,26 +68,3 @@ class PipeHandler(AbstractHandler):
 class CallbackHandler(AbstractHandler):
     def __call__(self, params):
         eval(self.apply(params)) # god save the kitten
-
-
-class HandlerTest(TestCase):
-    def test_pipehandler(self):
-        tmp = NamedTemporaryFile(delete=False)
-        tmp.close()
-        Handler = HandlerFactory("pipe", {"path":tmp.name})
-        h = Handler("test")
-        h([])
-        with open(tmp.name,"r") as f:
-            self.assertEqual(f.read(), "test")
-        tmp.unlink(tmp.name)
-
-    def test_clbhandler(self):
-        global a
-        a = 0
-        global f
-        f = lambda x: globals().__setitem__("a", x)
-        Handler = HandlerFactory("callback", {})
-        clb = Handler("f(int({0}))")
-        self.assertEqual(a, 0)
-        clb(["5"])
-        self.assertEqual(a, 5)
