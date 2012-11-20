@@ -12,11 +12,6 @@ __author__ = 'iljich'
 
 from unittest import TestCase, main
 
-class ProcessorTest(TestCase):
-    def test_init(self):
-        processor = Processor("test.conf")
-        expression = processor.expressions[0][0]
-
 class ConfigTest(TestCase):
     def setUp(self):
         with open("test.conf") as f:
@@ -69,22 +64,22 @@ class ExpressionTest(TestCase):
 
         btn1 = ex.button(26)
         seq = ex.sequence(btn, btn1)
-        self.assertEqual(seq([k]), (ex.state_reject, [], []))
+        self.assertEqual(seq([k]), (ex.state_partial, [], []))
         self.assertEqual(seq([k,k1]), (ex.state_accept, [], []))
-        self.assertEqual(seq([k,k2]), (ex.state_reject, [], []))
+        self.assertEqual(seq([k,k2]), (ex.state_partial, [], []))
         self.assertEqual(seq([k,k1,k2]), (ex.state_accept, [k2], []))
         self.assertEqual(seq([k,k2,k1]), (ex.state_accept, [], []))
 
         wild = ex.sequence(ex.wild(28))
         k3 = KeyEvent(InputEvent(0,0,0,28,1))
-        self.assertEqual(wild([k,k1,k2,k3]), (ex.state_accept, [], [[k,k1,k2]]))
+        self.assertEqual(wild([k,k1,k2,k3]), (ex.state_accept, [], [[k,k1]]))
         self.assertEqual(wild([k1,k3,k2,k]), (ex.state_accept, [k2,k], [[k1]]))
-        self.assertEqual(wild([k1,k2]), (ex.state_reject, [k1,k2], []))
+        self.assertEqual(wild([k1,k2]), (ex.state_partial, [], []))
 
         seq1 = ex.sequence(seq, wild)
         seq2 = ex.sequence(wild, seq1)
-        self.assertEqual(seq1([k,k1,k2,k3]), (ex.state_accept, [], [[k2]]))
-        self.assertEqual(seq2([k,k1,k3,k,k1,k2,k3]), (ex.state_accept, [], [[k,k1], [k2]]))
+        self.assertEqual(seq1([k,k1,k2,k3]), (ex.state_accept, [], [[]]))
+        self.assertEqual(seq2([k,k1,k3,k,k1,k2,k3]), (ex.state_accept, [], [[k,k1], []]))
 
     def test_parse(self):
         ex = Expression()
@@ -147,15 +142,16 @@ class HandlerTest(TestCase):
         tmp.unlink(tmp.name)
 
     def test_clbhandler(self):
-        global a
-        a = 0
-        global f
-        f = lambda x: globals().__setitem__("a", x)
-        Handler = HandlerFactory("callback", {})
-        clb = Handler("f(int({0}))")
-        self.assertEqual(a, 0)
-        clb(["5"])
-        self.assertEqual(a, 5)
+        tmp = NamedTemporaryFile(delete=False)
+        tmp.file.write("def raise_(): raise FutureWarning\n")
+        tmp.file.write("def raise__(smt): raise smt")
+        tmp.close()
+
+        Handler = HandlerFactory("callback", {"path": tmp.name})
+        self.assertRaises(FutureWarning, Handler("raise_()"), [])
+        self.assertRaises(FutureWarning, Handler("raise__({0})"), [FutureWarning])
+
+        tmp.unlink(tmp.name)
 
 if __name__ == '__main__':
     main()

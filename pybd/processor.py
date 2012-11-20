@@ -17,7 +17,7 @@ def singleton(cls):
         return instances[cls]
     return inner
 
-#@singleton
+@singleton
 class Processor():
     event_buffer = []
     expressions = []
@@ -43,7 +43,6 @@ class Processor():
         flush = True
         for expression, handler in self.expressions:
             result, extracted = expression(self.event_buffer)
-            print result,
             if result is Expression.state_accept:
                 handler(extracted)
                 flush = True
@@ -52,16 +51,12 @@ class Processor():
                 flush = False
         if flush:
             self.flush_buffer() # either handled or cannot be
-        print [(key.keycode[4:], key.keystate) for key in self.event_buffer]
 
     def flush_buffer(self):
         self.event_buffer = []
 
     def init_device(self):
-        state = 1 if self.config["device"]["default_state"].upper() in ["1", "ON", "TRUE"] else 0
-        conf = self.config["device"].copy()
-        conf.update({"default_state":state})
-        device = Device(**conf)
+        device = Device(**self.config["device"])
         self.devices.append(device)
 
     def exit(self):
@@ -70,8 +65,8 @@ class Processor():
 
     def run(self):
         while True:
-            r, w, x = select([device.listener for device in self.devices], [], [])
-            events = [event for device in r for event in device.read()
+            readable, w, x = select([device.listener for device in self.devices], [], [])
+            events = [event for device in readable for event in device.read()
                       if event.type == ecodes.EV_KEY
                         and KeyEvent(event).keystate is not KeyEvent.key_hold]
             if events:

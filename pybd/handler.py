@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
+from imp import load_source
 from subprocess import call
-from callbacks.callbacks import *
 
 __author__ = 'iljich'
 
@@ -66,5 +66,13 @@ class PipeHandler(AbstractHandler):
 
 @handler("callback")
 class CallbackHandler(AbstractHandler):
+    params = {"path": "callbacks/callbacks.py"}
+
+    def init(self, cmd, params):
+        AbstractHandler.init(self, cmd, params)
+        self.global_scope = load_source("_", self.params["path"]).__dict__
+        return self
+
     def __call__(self, params):
-        eval(self.apply(params)) # god save the kitten
+        scope = {"_%d" % i: params[i] for i in range(len(params))}
+        eval(self.apply(scope.keys()), self.global_scope, scope) # god save the kitten
