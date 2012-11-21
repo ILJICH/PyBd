@@ -27,7 +27,8 @@ class Device(object):
             logging.critical("Error opening device: not root")
             raise DeviceError
         self.initial_state = self.get_state()
-        self.set_state(default_state or 0)
+        if default_state is not None:
+            self.set_state(default_state or 0)
 
     def from_name(self, device_name):
         path = [dev.fn for dev in map(InputDevice, list_devices()) if dev.name==device_name]

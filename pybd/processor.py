@@ -24,8 +24,10 @@ class Processor():
     devices = []
 
     def __init__(self, config_path):
-        with open(config_path) as f:
-            self.config = ConfigReader(f.read())
+        self.config = ConfigReader()
+        for conf_file in ["defailts.conf", config_path]:
+            with open(conf_file) as f:
+                self.config = self.config.load(f.read())
         self.load_expressions()
         self.init_device()
 
@@ -74,11 +76,21 @@ class Processor():
                     self.handle_event(KeyEvent(event))
 
 
+class d_dict(dict):
+    def __getitem__(self, item):
+        reply = self.get(item, None)
+        return d_dict(reply) if isinstance(reply, dict) else reply
+
+
 class ConfigReader():
     default_dict = lambda self, dict: defaultdict(lambda: None, dict)
+    config = d_dict({})
 
     def __init__(self, config=""):
-        self.config = d_dict(loads("\n".join([line for line in config.split("\n")
+        self.load(config)
+
+    def load(self, config=""):
+        self.config.update(loads("\n".join([line for line in config.split("\n")
                                     if not line.strip().startswith("#")])))
 
     def __getitem__(self, item):
@@ -90,8 +102,3 @@ class ConfigReader():
         kwargs = [arg.split("=") for arg in tail]
         kwargs = [(kw[0], "=".join(kw[1:])) for kw in kwargs]
         return head, d_dict(kwargs)
-
-class d_dict(dict):
-    def __getitem__(self, item):
-        reply = self.get(item, None)
-        return d_dict(reply) if isinstance(reply, dict) else reply
