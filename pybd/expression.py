@@ -18,8 +18,12 @@ class Expression():
         "wild": [["[*]"]]
     }
 
+    @classmethod
+    def set_wildchar(cls, wildchar):
+        cls.wildchar = Translator.char_to_code(wildchar.strip("<>"))
+
     def __init__(self, pattern = "", wildchar = "<ENTER>"):
-        self.wildchar = Translator.char_to_code(wildchar.strip("<>"))
+        self.set_wildchar(wildchar)
         if pattern:
             parsed, extra = self.parse(pattern)
             if extra:
@@ -94,11 +98,6 @@ class Expression():
                     extracted.append(key)
             return self.state_partial, [], []
         return f
-
-    def event_to_string(self, events):
-        d = Display(":0")
-        code_to_string = lambda x: XK.keysym_to_string(d.keycode_to_keysym(x+8,0))
-        return "".join(code_to_string(event.scancode) for event in events)
 
     def compile(self, parsed):
         name, params = parsed[0], parsed[1:]

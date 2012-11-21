@@ -4,7 +4,7 @@ from json import loads
 from select import select
 from evdev import ecodes, KeyEvent
 from pybd.device import Device
-from pybd.expression import Expression
+from pybd.expression import Expression, Translator
 from pybd.handler import HandlerFactory
 from pybd.utils import singleton, d_dict
 
@@ -27,6 +27,7 @@ class Processor():
     def load_expressions(self, sceme="default", flush=False):
         if flush:
             self.expressions = []
+        Expression.set_wildchar(self.config["processor"]["input_end_key"])
         for handler_header, expressions in self.config["expressions"][sceme].items():
             handler_name, handler_args = self.config.split_header(handler_header)
             Handler = HandlerFactory(handler_name, handler_args)
@@ -36,6 +37,9 @@ class Processor():
     def handle_event(self, event):
         self.event_buffer.append(event)
         flush = True
+        if Translator.key_to_name(event) == self.config["processor"]["reset_key"]:
+            self.flush_buffer()
+            return
         for expression, handler in self.expressions:
             result, extracted = expression(self.event_buffer)
             if result is Expression.state_accept:
