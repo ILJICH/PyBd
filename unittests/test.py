@@ -14,8 +14,12 @@ from unittest import TestCase, main
 
 class ConfigTest(TestCase):
     def setUp(self):
-        with open("test.conf") as f:
-            self.c = ConfigReader(f.read())
+        try:
+            f = open("test.conf")
+        except IOError:
+            f = open("unittests/test.conf")
+        self.c = ConfigReader(f.read())
+        f.close()
 
     def test_config(self):
         self.assertEqual(self.c["none"], None)
@@ -45,9 +49,14 @@ class DeviceManagerTest(TestCase):
         self.assertEqual(self.device.get_state(), 1)
 
     def test_from_xid(self):
-        d = Device(xid=10)
-        d1 = Device(name="AT Translated Set 2 keyboard")
+        d = Device(name="AT Translated Set 2 keyboard")
+        d1 = Device(xid=d.xid)
         self.assertEqual(d.path, d1.path)
+
+    def test_from_path(self):
+        d = Device(xid=10)
+        d1 = Device(path=d.path)
+        self.assertEqual(d.xid, d1.xid)
 
 class ExpressionTest(TestCase):
 
