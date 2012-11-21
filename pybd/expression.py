@@ -18,8 +18,8 @@ class Expression():
         "wild": [["[*]"]]
     }
 
-    def __init__(self, pattern = "", wildchar = 28):
-        self.wildchar = wildchar
+    def __init__(self, pattern = "", wildchar = "<ENTER>"):
+        self.wildchar = Translator.char_to_code(wildchar.strip("<>"))
         if pattern:
             parsed, extra = self.parse(pattern)
             if extra:
@@ -33,7 +33,7 @@ class Expression():
 
     def process(self, keys):
         state, extra, extracted = self.compiled(keys)
-        reply = ["".join(key.keycode[4:].lower() for key in reply_) for reply_ in extracted]
+        reply = ["".join(Translator.code_to_char(key) for key in reply_) for reply_ in extracted]
         return self.state_reject if len(extra) else state, reply
 
     def parse_seq(self, seq, text):
@@ -95,9 +95,6 @@ class Expression():
             return self.state_partial, [], []
         return f
 
-    def translate_code(self, key):
-        return ecodes.ecodes.get("KEY_%s" % key.upper(), None)
-
     def event_to_string(self, events):
         d = Display(":0")
         code_to_string = lambda x: XK.keysym_to_string(d.keycode_to_keysym(x+8,0))
@@ -108,10 +105,43 @@ class Expression():
         if name is "literal":
             return self.compile(params[0])
         elif name is "button":
-            code = self.translate_code(params[0].strip("<>"))
+            code = Translator.char_to_code(params[0].strip("<>"))
             return self.button(code)
         elif name is "wild":
             return self.wild(self.wildchar)
         elif name is "sequence":
             return self.sequence(*[self.compile(param) for param in params])
         raise ValueError("No such method: %s" % name)
+
+
+class Translator(object):
+    device = "key"
+    display = None
+
+    @classmethod
+    def set_device_type(cls, device="key"):
+        cls.device = device
+
+    @classmethod
+    def char_to_code(cls, char):
+        template = {"key": "KEY_%s", "button": "BTN_%s"}[cls.device]
+        return ecodes.ecodes.get(template % char.upper(), None)
+
+    @classmethod
+    def code_to_char(cls, code, modifiers=0):
+        if cls.device is "button":
+            return "<%s>" % cls.key_to_name(code)
+        if not cls.display:
+            cls.display = Display()
+        return XK.keysym_to_string(cls.display.keycode_to_keysym(code + 8, modifiers))
+
+    @classmethod
+    def key_to_name(cls, key):
+        try:
+            name = key.keycode[4:].lower()
+        except AttributeError:
+            prefix = {"key": "KEY_", "button": "BTN_"}[cls.device]
+            keys = [(key_[4:],code) for key_, code in ecodes.ecodes.items()
+                                    if key_.startswith(prefix)]
+            name = sorted(filter(lambda (k,v): v==key, keys), key=lambda (x,y): len(x))[0][0]
+        return name

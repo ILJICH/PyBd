@@ -4,7 +4,7 @@ from subprocess import CalledProcessError
 from tempfile import NamedTemporaryFile
 from evdev import KeyEvent, InputEvent
 from pybd.device import Device, DeviceError
-from pybd.expression import Expression
+from pybd.expression import Expression, Translator
 from pybd.handler import HandlerFactory
 from pybd.processor import Processor, ConfigReader
 
@@ -101,12 +101,6 @@ class ExpressionTest(TestCase):
         self.assertEqual(ex.parse("<Enter>a"), (["sequence" ,["literal", ["button", "<Enter>"]],
                                                     ["sequence", ["literal", ["button", "a"]]]], ""))
 
-    def test_translate_code(self):
-        ex = Expression()
-        matches = {"a": 30, "A": 30, "ENTER": 28, "NONE": None}
-        for key, result in matches.items():
-            self.assertEqual(ex.translate_code(key), result)
-
     def test_compile(self):
         ex = Expression()
         btn_a = ex.button(30)
@@ -161,6 +155,23 @@ class HandlerTest(TestCase):
         self.assertRaises(FutureWarning, Handler("raise__({0})"), [FutureWarning])
 
         tmp.unlink(tmp.name)
+
+class TranslationTest(TestCase):
+    def test_char_to_code(self):
+        Translator.set_device_type("key")
+        matches = {"a": 30, "A": 30, "ENTER": 28, "NONE": None}
+        for key, result in matches.items():
+            self.assertEqual(Translator.char_to_code(key), result)
+        Translator.set_device_type("button")
+        self.assertEqual(Translator.char_to_code("TOUCH"), 330)
+
+    def test_code_to_chat(self):
+        Translator.set_device_type("key")
+        matches = {"a": 30, "\r": 28}
+        for key, code in matches.items():
+            self.assertEqual(Translator.code_to_char(code), key)
+        Translator.set_device_type("button")
+        self.assertEqual(Translator.code_to_char(330), "<TOUCH>")
 
 if __name__ == '__main__':
     main()

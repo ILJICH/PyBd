@@ -6,16 +6,9 @@ from evdev import ecodes, KeyEvent
 from pybd.device import Device
 from pybd.expression import Expression
 from pybd.handler import HandlerFactory
+from pybd.utils import singleton, d_dict
 
 __author__ = 'iljich'
-
-def singleton(cls):
-    instances = {}
-    def inner(*args, **kwargs):
-        if cls not in instances:
-            instances[cls] = cls(*args, **kwargs)
-        return instances[cls]
-    return inner
 
 @singleton
 class Processor():
@@ -74,12 +67,6 @@ class Processor():
             if events:
                 for event in events:
                     self.handle_event(KeyEvent(event))
-
-
-class d_dict(dict):
-    def __getitem__(self, item):
-        reply = self.get(item, None)
-        return d_dict(reply) if isinstance(reply, dict) else reply
 
 
 class ConfigReader():
