@@ -19,10 +19,9 @@ class Device(object):
                 self.from_xid(xid)
             else:
                 self.from_name(name)
-            self.listener = [dev for dev in map(InputDevice, list_devices()) if dev.fn == self.path][0]
+            self.listener = InputDevice(self.path)
         except OSError as e:
-            logging.critical("No xinput. %s", e)
-            raise DeviceError
+            raise DeviceError(e)
         #except IndexError:
         #    logging.critical("Error opening device: not root")
         #    raise DeviceError
