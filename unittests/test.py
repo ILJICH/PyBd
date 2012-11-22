@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from itertools import permutations
+from os.path import dirname
 from subprocess import CalledProcessError
 from tempfile import NamedTemporaryFile
 from evdev import KeyEvent, InputEvent
@@ -14,10 +15,7 @@ from unittest import TestCase, main
 
 class ConfigTest(TestCase):
     def setUp(self):
-        try:
-            f = open("test.conf")
-        except IOError:
-            f = open("unittests/test.conf")
+        f = open(dirname(__file__) + "/test.conf")
         self.c = ConfigReader(f.read())
         f.close()
 

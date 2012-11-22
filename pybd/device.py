@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 from re import search, findall
-from subprocess import Popen, PIPE, check_call, check_output
+from subprocess import Popen, PIPE, check_call
 from evdev.device import InputDevice
 from evdev.util import list_devices
 
@@ -23,36 +23,40 @@ class Device(object):
         except OSError as e:
             logging.critical("No xinput. %s", e)
             raise DeviceError
-        except IndexError:
-            logging.critical("Error opening device: not root")
-            raise DeviceError
+        #except IndexError:
+        #    logging.critical("Error opening device: not root")
+        #    raise DeviceError
         self.initial_state = self.get_state()
         if default_state is not None:
             self.set_state(default_state or 0)
 
     def from_name(self, device_name):
-        path = [dev.fn for dev in map(InputDevice, list_devices()) if dev.name==device_name]
-        if not path:
-            raise DeviceError("No device with name %s" % device_name)
-        if len(path) > 1:
-            raise DeviceError("Multiple devices with name %s, use xid or path instead" % device_name)
-        self.path = path[0]
-        devices = Popen(["xinput"], stdout=PIPE).communicate()[0]
-        self.xid = search(r"\b%s\s*id=(\d*)" % device_name, devices).group(1)
+        info = Popen(["xinput", "list", "--short", device_name], stdout=PIPE).communicate()[0]
+        try:
+            device_name, self.xid = search(r"^([a-zA-Z0-9 _]+?)\s*id=(\d+)", info).groups(0)
+            path_info = Popen(["xinput", "list-props", self.xid], stdout=PIPE).communicate()[0]
+            self.path = search(r'Device Node \(\d*\):\s*"([a-zA-Z0-9_/]*)"', path_info).group(1)
+        except AttributeError:
+            path = [dev.fn for dev in map(InputDevice, list_devices()) if dev.name==device_name]
+            if not path:
+                raise DeviceError("No device with name %s" % device_name)
+            if len(path) > 1:
+                raise DeviceError("Multiple devices with name %s, use xid or path instead,"
+                              "or prefix name with 'keyboard' or 'pointer':" % device_name)
 
     def from_xid(self, xid):
         self.xid = str(xid)
-        info = Popen(["xinput", "list-props", str(xid)], stdout=PIPE).communicate()[0]
+        info = Popen(["xinput", "list-props", self.xid], stdout=PIPE).communicate()[0]
         try:
             self.path = search(r'Device Node \(\d*\):\s*"([a-zA-Z0-9_/]*)"', info).group(1)
         except AttributeError:
-            raise DeviceError("No device with id %s" % xid)
+            raise DeviceError("No device with id %s" % self.xid)
 
     def from_path(self, path):
         self.path = path
         devices = Popen(["xinput"], stdout=PIPE).communicate()[0]
         xids = findall(r"\b%s\s*id=(\d*)" % InputDevice(path).name, devices)
-        info = check_output(["xinput","list-props"] + xids)
+        info = Popen(["xinput","list-props"] + xids, stdout=PIPE).communicate()[0]
         nodes = findall(r'Device Node \(\d*\):\s*"([a-zA-Z0-9_/]*)"', info)
         self.xid = xids[nodes.index(path)]
 

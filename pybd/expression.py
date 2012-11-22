@@ -37,7 +37,7 @@ class Expression():
 
     def process(self, keys):
         state, extra, extracted = self.compiled(keys)
-        reply = ["".join(Translator.code_to_char(key) for key in reply_) for reply_ in extracted]
+        reply = ["".join(Translator.code_to_char(key.scancode) for key in reply_) for reply_ in extracted]
         return self.state_reject if len(extra) else state, reply
 
     def parse_seq(self, seq, text):

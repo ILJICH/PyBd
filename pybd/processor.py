@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 from json import loads
+from os.path import dirname
 from select import select
 from evdev import ecodes, KeyEvent
 from pybd.device import Device
@@ -18,9 +19,9 @@ class Processor():
 
     def __init__(self, config_path):
         self.config = ConfigReader()
-        for conf_file in ["defailts.conf", config_path]:
+        for conf_file in [dirname(__file__) + "/defaults.conf", config_path]:
             with open(conf_file) as f:
-                self.config = self.config.load(f.read())
+                self.config.load(f.read())
         self.load_expressions()
         self.init_device()
 
@@ -36,20 +37,24 @@ class Processor():
 
     def handle_event(self, event):
         self.event_buffer.append(event)
-        flush = True
         if Translator.key_to_name(event) == self.config["processor"]["reset_key"]:
             self.flush_buffer()
             return
+        handled = False
         for expression, handler in self.expressions:
             result, extracted = expression(self.event_buffer)
             if result is Expression.state_accept:
                 handler(extracted)
-                flush = True
+                handled = True
                 break
-            if result is Expression.state_partial:
-                flush = False
-        if flush:
-            self.flush_buffer() # either handled or cannot be
+            elif result is Expression.state_partial:
+                handled = True
+            elif result is Expression.state_reject:
+                pass
+            else:
+                raise AttributeError("Unexpected expression reply")
+        if not handled:
+            self.flush_buffer()
 
     def flush_buffer(self):
         self.event_buffer = []
@@ -77,7 +82,7 @@ class ConfigReader():
     default_dict = lambda self, dict: defaultdict(lambda: None, dict)
     config = d_dict({})
 
-    def __init__(self, config=""):
+    def __init__(self, config="{}"):
         self.load(config)
 
     def load(self, config=""):

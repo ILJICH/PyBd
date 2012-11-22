@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from imp import load_source
+from os.path import dirname, isabs, join
 from subprocess import call
 
 __author__ = 'iljich'
@@ -66,13 +67,17 @@ class PipeHandler(AbstractHandler):
 
 @handler("callback")
 class CallbackHandler(AbstractHandler):
-    params = {"path": "callbacks/callbacks.py"}
+    params = {"path": "../callbacks/callbacks.py"}
 
     def init(self, cmd, params):
         AbstractHandler.init(self, cmd, params)
-        self.global_scope = load_source("_", self.params["path"]).__dict__
+        path = self.params["path"]
+        if not isabs(path):
+            path = join(dirname(__file__), path)
+        self.global_scope = load_source("_", path).__dict__
         return self
 
     def __call__(self, params):
-        scope = {"_%d" % i: params[i] for i in range(len(params))}
-        eval(self.apply(scope.keys()), self.global_scope, scope) # god save the kitten
+        local_scope = {"_%d" % i: params[i] for i in range(len(params))}
+        eval(self.apply(local_scope.keys()),
+            dict(local_scope.items() + self.global_scope.items())) # god save the kitten
