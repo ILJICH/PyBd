@@ -78,11 +78,9 @@ class Processor():
                     self.handle_event(KeyEvent(event))
 
     def init_logging(self):
-        logger = logging.getLogger()
-        logger.setLevel(self.config["processor"]["loglevel"])
-        handler = logging.FileHandler(self.config["processor"]["logfile"], "w+")
-        handler.setFormatter(logging.Formatter('%(asctime)s : [%(levelname)s]  %(message)s'))
-        logger.addHandler(handler)
+        logging.basicConfig(level=self.config["processor"]["loglevel"],
+            format='%(asctime)s : [%(levelname)s]  %(message)s',
+            filename=self.config["processor"]["logfile"], filemode="w+")
         logging.info("Logging system initialized")
 
 

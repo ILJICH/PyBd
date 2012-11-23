@@ -17,22 +17,24 @@ class d_dict(dict):
         reply = self.get(item, None)
         return d_dict(reply) if isinstance(reply, dict) else reply
 
-class FileLikeLogger:
+class FileLikeLogger(object):
     """wraps a logging.Logger into a file like object"""
+
+    fileno = lambda s: 1 # sys.stdout
+
     def __init__(self, level=logging.WARNING, logger="root"):
         self.level = level
-        self.logger = logger
+        self.logger = logging.getLogger(logger)
 
     def write(self, str):
-        str = str.rstrip() #get rid of all tailing newlines and white space
-        if str: #don't log emtpy lines
-            for line in str.split('\n'):
-                logging.getLogger(self.logger).log(self.level, line) #critical to log at any logLevel
+        str = str.rstrip("\n")
+        if str:
+            self.logger.log(self.level, str)
 
     def flush(self):
-        for handler in logging.getLogger(self.logger).handlers:
+        for handler in self.logger.handlers:
             handler.flush()
 
     def close(self):
-        for handler in logging.getLogger(self.logger).handlers:
+        for handler in self.logger.handlers:
             handler.close()
