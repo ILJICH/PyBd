@@ -1,21 +1,24 @@
 # -*- coding: utf-8 -*-
+import logging
 from signal import SIGTERM, SIGHUP
 from daemon import daemon
 from lockfile import FileLock
-from os.path import dirname
 from pybd.processor import Processor
+from pybd.utils import FileLikeLogger
 
 __author__ = 'iljich'
 
 
 context = daemon.DaemonContext(
     pidfile=FileLock('/var/run/pybd.pid'),
-    uid = 0
+    uid = 0,
+    stderr=open("e","w+"),#FileLikeLogger(logging.getLogger(), logging.ERROR)
+    stdout=open("o","w+")#FileLikeLogger(logging.INFO),
 )
 
 context.signal_map = {
-    SIGTERM: lambda : Processor().exit(),
-    SIGHUP: lambda : Processor().exit()
+    SIGTERM: lambda s,f: Processor().exit(),
+    SIGHUP: lambda s,f: Processor().exit()
 }
 
 with context:

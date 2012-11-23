@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 from json import loads
+import logging
 from os.path import dirname
 from select import select
 from evdev import ecodes, KeyEvent
@@ -18,10 +19,9 @@ class Processor():
     devices = []
 
     def __init__(self, config_path):
-        self.config = ConfigReader()
-        for conf_file in [dirname(__file__) + "/defaults.conf", config_path]:
-            with open(conf_file) as f:
-                self.config.load(f.read())
+        with open(config_path) as f:
+            self.config = ConfigReader(f.read())
+        self.init_logging()
         self.load_expressions()
         self.init_device()
 
@@ -76,6 +76,14 @@ class Processor():
             if events:
                 for event in events:
                     self.handle_event(KeyEvent(event))
+
+    def init_logging(self):
+        logger = logging.getLogger()
+        logger.setLevel(self.config["processor"]["loglevel"])
+        handler = logging.FileHandler(self.config["processor"]["logfile"], "w+")
+        handler.setFormatter(logging.Formatter('%(asctime)s : [%(levelname)s]  %(message)s'))
+        logger.addHandler(handler)
+        logging.info("Logging system initialized")
 
 
 class ConfigReader():
