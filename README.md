@@ -81,15 +81,15 @@ Expressions are defined by patterns. Input pattern rules:
 To install you need to run:
 
 >$ git clone https://github.com/ILJICH/PyBd.git<br>
-$ cd pybd
+$ cd PyBd
 
 Then you need to edit config file
 >$ gedit pybd.conf
 
 You might want to use interactive tool to determine needed device and key names:
->\# pybd -i
+>\# sudo python run.py -i
 
 Finally, run
->\# pybd -c pybd.conf
+>\# sudo python run.py -c pybd.conf
 
 Note that you need to run as root in order to listen devices properly.
