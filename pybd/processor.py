@@ -22,8 +22,11 @@ class Processor():
         with open(config_path) as f:
             self.config = ConfigReader(f.read())
         self.init_logging()
+        logging.info("loading expressions")
         self.load_expressions()
+        logging.info("initializing device")
         self.init_device()
+        logging.debug("starting up done")
 
     def load_expressions(self, sceme="default", flush=False):
         if flush:
@@ -37,10 +40,12 @@ class Processor():
 
     def handle_event(self, event):
         self.event_buffer.append(event)
+        logging.debug("caught key, new buffer: %s", self.event_buffer)
         if Translator.key_to_name(event) == self.config["processor"]["reset_key"]:
             self.flush_buffer()
             return
         handled = False
+        result = Expression.state_reject
         for expression, handler in self.expressions:
             result, extracted = expression(self.event_buffer)
             if result is Expression.state_accept:
@@ -53,6 +58,7 @@ class Processor():
                 pass
             else:
                 raise AttributeError("Unexpected expression reply")
+        logging.debug("reply: %s", ["accept", "reject", "partial"][result])
         if not handled:
             self.flush_buffer()
 
@@ -64,10 +70,12 @@ class Processor():
         self.devices.append(device)
 
     def exit(self):
+        logging.info("cleaning up")
         for device in self.devices:
             device.exit()
 
     def run(self):
+        logging.info("starting main loop")
         while True:
             readable, w, x = select([device.listener for device in self.devices], [], [])
             events = [event for device in readable for event in device.read()
