@@ -11,6 +11,7 @@ class Expression():
     state_reject = 1
     state_partial = 2
     wildchar = 28
+    pattern = ""
     grammar = {
         "literal": [["button"], ["wild"]],
         "button": [["[0-9a-zA-Z]"], ["<[0-9a-zA-Z_]*>"]],
@@ -23,6 +24,7 @@ class Expression():
         cls.wildchar = Translator.char_to_code(wildchar.strip("<>"))
 
     def __init__(self, pattern = "", wildchar = "<ENTER>"):
+        self.pattern = pattern
         self.set_wildchar(wildchar)
         if pattern:
             parsed, extra = self.parse(pattern)
@@ -34,6 +36,9 @@ class Expression():
 
     def __call__(self, keys):
         return self.process(keys)
+
+    def __str__(self):
+        return self.pattern
 
     def process(self, keys):
         state, extra, extracted = self.compiled(keys)
