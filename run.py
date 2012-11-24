@@ -13,16 +13,17 @@ from os import path
 __author__ = 'iljich'
 
 parser = ArgumentParser()
-parser.add_argument("-c", "--config", help="path to config file")
 parser.add_argument("-i", "--interactive", action="store_true",
     help="interactive tool for testing devices output")
+parser.add_argument("-c", "--config", help="path to config file")
+parser.add_argument("-p", "--pidfile", help="path to pid file", default="/var/run/pybd.pid")
 
 args = parser.parse_args()
 
 if args.config and not args.interactive:
 
     context = daemon.DaemonContext(
-        pidfile=MyPIDLockFile('/var/run/pybd.pid'),
+        pidfile=MyPIDLockFile(args.pidfile),
         uid = 0,
         stderr=FileLikeLogger("ERROR"),
         stdout=FileLikeLogger("INFO"),
