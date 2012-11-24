@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+This file contains an example function, that can be used in CallbackHandler.
+"""
 from re import search
 from subprocess import Popen, PIPE
 

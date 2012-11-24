@@ -6,7 +6,7 @@ from select import select
 from subprocess import PIPE, Popen
 from time import sleep
 from daemon.pidlockfile import PIDLockFile
-from evdev import list_devices, InputDevice
+from evdev import InputDevice
 from evdev import ecodes
 from evdev.events import KeyEvent
 from lockfile import NotMyLock, NotLocked

@@ -2,13 +2,12 @@
 from collections import defaultdict
 from json import loads
 import logging
-from os.path import dirname
 from select import select
 from evdev import ecodes, KeyEvent
 from pybd.device import Device
 from pybd.expression import Expression, Translator
 from pybd.handler import HandlerFactory
-from pybd.utils import singleton, d_dict
+from pybd.utils import d_dict
 
 __author__ = 'iljich'
 

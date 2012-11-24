@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 from re import search, findall
 from subprocess import Popen, PIPE, check_call
 from evdev.device import InputDevice

@@ -2,9 +2,6 @@
 from argparse import ArgumentParser
 from signal import SIGTERM, SIGHUP
 from daemon import daemon
-from daemon.pidlockfile import PIDLockFile
-from lockfile import FileLock
-import sys
 from pybd.device import Device
 from pybd.processor import Processor
 from pybd.utils import FileLikeLogger, input_devices, listen_device, MyPIDLockFile
