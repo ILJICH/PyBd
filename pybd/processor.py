@@ -11,7 +11,7 @@ from pybd.utils import d_dict
 
 __author__ = 'iljich'
 
-class Processor():
+class Processor(object):
     _instance = None
     event_buffer = []
     expressions = []
