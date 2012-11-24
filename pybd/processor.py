@@ -43,14 +43,17 @@ class Processor(object):
             for pattern, command in expressions.items():
                 self.expressions.append((Expression(pattern), Handler(command)))
         # for resetting purposes
-        self.expressions.append((
-            Expression("*", self.config["processor"]["reset_key"]), lambda x: self.flush_buffer()))
+        self.reset_expression = Expression("*", self.config["processor"]["reset_key"])
 
     def handle_event(self, event):
         self.event_buffer.append(event)
         logging.debug("caught key, new buffer: %s",
             [(Translator.key_to_name(key), key.keystate) for key in self.event_buffer])
-        handled = False
+        # a bit dirty, yet so
+        if self.reset_expression(self.event_buffer)[0] is Expression.state_accept:
+            self.flush_buffer()
+            return
+        keep = False
         result = Expression.state_reject
         for expression, handler in self.expressions:
             result, extracted = expression(self.event_buffer)
@@ -62,16 +65,16 @@ class Processor(object):
                     handler(extracted)
                 except Exception as e:
                     logging.error("error during handler execution: %s", e)
-                handled = True
+                keep = False
                 break
             elif result is Expression.state_partial:
-                handled = True
+                keep = True
             elif result is Expression.state_reject:
                 pass
             else:
                 raise AttributeError("Unexpected expression reply")
         logging.debug("reply: %s", ["accept", "reject", "partial"][result])
-        if not handled:
+        if not keep:
             self.flush_buffer()
 
     def flush_buffer(self):
