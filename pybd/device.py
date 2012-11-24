@@ -57,6 +57,7 @@ class Device(object):
         xids = findall(r"\b%s\s*id=(\d*)" % InputDevice(path).name, devices)
         info = Popen(["xinput","list-props"] + xids, stdout=PIPE).communicate()[0]
         nodes = findall(r'Device Node \(\d*\):\s*"([a-zA-Z0-9_/]*)"', info)
+        print info
         self.xid = xids[nodes.index(path)]
 
     def set_state(self, state):

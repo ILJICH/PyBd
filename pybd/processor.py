@@ -27,6 +27,7 @@ class Processor():
         logging.info("initializing device")
         self.init_device()
         logging.debug("starting up done")
+        self.run()
 
     def load_expressions(self, sceme="default", flush=False):
         if flush:
