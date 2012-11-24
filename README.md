@@ -78,6 +78,10 @@ Expressions are defined by patterns. Input pattern rules:
     >Example: **"a\*"** means **"a"** pressed, then any sequence, finished by wildcard breaker (can be changed in config, default: **"\<ENTER\>"**).
 
 ## Installation
+First of all, make shure you have all dependencies installed.
+>\# apt-get install xinput python-daemon python-xlib<br>
+\# pip install evdev
+
 To install you need to run:
 
 >$ git clone https://github.com/ILJICH/PyBd.git<br>
@@ -87,9 +91,9 @@ Then you need to edit config file
 >$ gedit pybd.conf
 
 You might want to use interactive tool to determine needed device and key names:
->\# sudo python run.py -i
+>\# python run.py -i
 
 Finally, run
->\# sudo python run.py -c pybd.conf
+>\# python run.py -c pybd.conf
 
 Note that you need to run as root in order to listen devices properly.
