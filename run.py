@@ -2,10 +2,12 @@
 from argparse import ArgumentParser
 from signal import SIGTERM, SIGHUP
 from daemon import daemon
+from daemon.pidlockfile import PIDLockFile
 from lockfile import FileLock
+import sys
 from pybd.device import Device
 from pybd.processor import Processor
-from pybd.utils import FileLikeLogger, input_devices, listen_device
+from pybd.utils import FileLikeLogger, input_devices, listen_device, MyPIDLockFile
 from os import path
 
 __author__ = 'iljich'
@@ -20,15 +22,15 @@ args = parser.parse_args()
 if args.config and not args.interactive:
 
     context = daemon.DaemonContext(
-        pidfile=FileLock('/var/run/pybd.pid'),
+        pidfile=MyPIDLockFile('/var/run/pybd.pid'),
         uid = 0,
         stderr=FileLikeLogger("ERROR"),
         stdout=FileLikeLogger("INFO"),
     )
 
     context.signal_map = {
-        SIGTERM: lambda s,f: Processor().exit(),
-        SIGHUP: lambda s,f: Processor().exit()
+        SIGTERM: lambda s,f: Processor.instance().exit(),
+        #SIGHUP: lambda s,f: Processor.instance().exit()
     }
 
     config_path = path.abspath(args.config)

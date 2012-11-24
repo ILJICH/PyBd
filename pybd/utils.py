@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 import logging
+import os
 from re import findall
 from select import select
 from subprocess import PIPE, Popen
 from time import sleep
+from daemon.pidlockfile import PIDLockFile
 from evdev import list_devices, InputDevice
 from evdev import ecodes
 from evdev.events import KeyEvent
+from lockfile import NotMyLock, NotLocked
 from pybd.expression import Translator
 
 __author__ = 'iljich'
@@ -69,3 +72,15 @@ def listen_device(device):
             if name:
                 print name
 
+
+class MyPIDLockFile(PIDLockFile):
+
+    def acquire(self, *args, **kwargs):
+        try:
+            self.release()
+        except NotMyLock:
+            if not os.path.exists("/proc/%s" % self.read_pid()):
+                self.break_lock()
+        except NotLocked:
+            pass
+        super(MyPIDLockFile, self).acquire(*args, **kwargs)

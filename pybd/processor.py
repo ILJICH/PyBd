@@ -12,8 +12,8 @@ from pybd.utils import singleton, d_dict
 
 __author__ = 'iljich'
 
-@singleton
 class Processor():
+    _instance = None
     event_buffer = []
     expressions = []
     devices = []
@@ -27,7 +27,12 @@ class Processor():
         logging.info("initializing device")
         self.init_device()
         logging.debug("starting up done")
+        Processor._instance = self
         self.run()
+
+    @classmethod
+    def instance(cls):
+        return cls._instance
 
     def load_expressions(self, sceme="default", flush=False):
         if flush:
@@ -38,19 +43,26 @@ class Processor():
             Handler = HandlerFactory(handler_name, handler_args)
             for pattern, command in expressions.items():
                 self.expressions.append((Expression(pattern), Handler(command)))
+        # for resetting purposes
+        self.expressions.append((
+            Expression("*", self.config["processor"]["reset_key"]), lambda x: self.flush_buffer()))
 
     def handle_event(self, event):
         self.event_buffer.append(event)
-        logging.debug("caught key, new buffer: %s", self.event_buffer)
-        if Translator.key_to_name(event) == self.config["processor"]["reset_key"]:
-            self.flush_buffer()
-            return
+        logging.debug("caught key, new buffer: %s",
+            [(Translator.key_to_name(key), key.keystate) for key in self.event_buffer])
         handled = False
         result = Expression.state_reject
         for expression, handler in self.expressions:
             result, extracted = expression(self.event_buffer)
             if result is Expression.state_accept:
-                handler(extracted)
+                logging.info("valid expression of '%s' is caught", expression)
+                try:
+                    logging.info("handler '%s' is in charge, params: %s",
+                        handler, extracted)
+                    handler(extracted)
+                except Exception as e:
+                    logging.error("error during handler execution: %s", e)
                 handled = True
                 break
             elif result is Expression.state_partial:

@@ -41,6 +41,9 @@ class AbstractHandler():
     def __call__(self, params):
         pass
 
+    def __str__(self):
+        return self.cmd
+
 @handler("dummy")
 class DummyHandler(AbstractHandler):
     pass
