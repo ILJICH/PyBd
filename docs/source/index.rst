@@ -8,6 +8,8 @@ Welcome to pybd's documentation!
 
 Contents:
 
+Hello World!
+
 .. toctree::
    :maxdepth: 2
 
